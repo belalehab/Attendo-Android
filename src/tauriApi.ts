@@ -1515,3 +1515,10 @@ export async function initTauriApi() {
     }
   };
 }
+let apiInstance: any = null;
+export async function getApi() {
+    if (!apiInstance) {
+        apiInstance = await initTauriApi();
+    }
+    return apiInstance;
+}
