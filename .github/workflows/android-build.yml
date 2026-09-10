@@ -1,4 +1,4 @@
-﻿name: Build Attendo Android APK
+name: Build Attendo Android APK
 on:
   workflow_dispatch:
 
@@ -9,7 +9,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with: { distribution: zulu, java-version: '17' }
       - uses: android-actions/setup-android@v3
       - name: Setup NDK Environment
@@ -20,7 +20,7 @@ jobs:
         with: { targets: aarch64-linux-android }
       - run: npm install
       - run: npx tauri android init
-      - run: npx tauri icon ../attendo-app/public/attendo-icon.png
+      - run: npx tauri icon public/attendo-icon.png
         continue-on-error: true
       - run: npx tauri android build --debug --apk --target aarch64
       - uses: actions/upload-artifact@v4
