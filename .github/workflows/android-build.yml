@@ -21,9 +21,10 @@ jobs:
       - run: npm install
       - run: npx tauri android init
       - run: npx tauri icon public/attendo-icon.png
-        continue-on-error: true
+      - run: cp -r src-tauri/icons/android/* src-tauri/gen/android/app/src/main/res/ || true
       - run: npx tauri android build --debug --apk --target aarch64
       - uses: actions/upload-artifact@v4
         with:
           name: Attendo-Android-APK
           path: src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+
