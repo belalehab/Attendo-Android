@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Rocket, GraduationCap } from 'lucide-react';
+import { Rocket } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getApi } from '../tauriApi';
 
@@ -29,18 +29,18 @@ export default function SetupScreen({ onComplete }: { onComplete: () => void }) 
   };
 
   return (
-    <div className="flex flex-col h-screen w-screen bg-[#0f172a] text-white p-6 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-64 bg-blue-600/20 blur-[100px] rounded-full pointer-events-none -translate-y-1/2"></div>
+    <div className="flex flex-col h-[100dvh] w-screen bg-[#0a0f1c] text-white p-6 relative overflow-hidden">
+      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[50%] bg-blue-600/15 blur-[120px] rounded-full pointer-events-none"></div>
       
-      <div className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full relative z-10">
-        <div className="w-16 h-16 bg-blue-500/20 rounded-2xl flex items-center justify-center mb-6">
-          <GraduationCap className="text-blue-400" size={32} />
+      <div className="flex-1 flex flex-col justify-center max-w-sm mx-auto w-full relative z-10 py-10">
+        <div className="flex items-center justify-center gap-3 mb-12">
+          <img src="/attendo-icon.png" className="w-14 h-14 drop-shadow-xl" alt="Icon" />
         </div>
         
-        <h1 className="text-3xl font-black mb-2">Welcome to Attendo</h1>
-        <p className="text-gray-400 text-sm mb-8">Let's set up your mobile workspace.</p>
+        <h1 className="text-3xl font-black mb-2 tracking-wide">Welcome</h1>
+        <p className="text-gray-400 text-sm mb-10 leading-relaxed">Let's set up your mobile workspace.</p>
 
-        <div className="space-y-4">
+        <div className="space-y-5">
           <div>
             <label className="text-xs text-gray-400 font-bold uppercase tracking-wider ml-1">Instructor Name</label>
             <input 
@@ -48,7 +48,7 @@ export default function SetupScreen({ onComplete }: { onComplete: () => void }) 
               placeholder="Dr. John Doe"
               value={instructor}
               onChange={e => setInstructor(e.target.value)}
-              className="w-full mt-1 bg-[#1e293b] border border-white/10 rounded-xl p-4 text-white outline-none focus:border-blue-500 transition-colors"
+              className="w-full mt-1.5 bg-black/40 backdrop-blur-md border border-white/10 rounded-xl p-4 text-white outline-none focus:border-blue-500 transition-colors shadow-inner"
             />
           </div>
           <div>
@@ -58,14 +58,14 @@ export default function SetupScreen({ onComplete }: { onComplete: () => void }) 
               placeholder="e.g. Suez Canal University"
               value={university}
               onChange={e => setUniversity(e.target.value)}
-              className="w-full mt-1 bg-[#1e293b] border border-white/10 rounded-xl p-4 text-white outline-none focus:border-blue-500 transition-colors"
+              className="w-full mt-1.5 bg-black/40 backdrop-blur-md border border-white/10 rounded-xl p-4 text-white outline-none focus:border-blue-500 transition-colors shadow-inner"
             />
           </div>
         </div>
 
         <button 
           onClick={finishSetup}
-          className="mt-10 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-lg shadow-blue-500/25"
+          className="mt-12 w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 transition-transform active:scale-95 shadow-lg shadow-blue-500/25"
         >
           <Rocket size={20} />
           Complete Setup
@@ -74,4 +74,3 @@ export default function SetupScreen({ onComplete }: { onComplete: () => void }) 
     </div>
   );
 }
-
