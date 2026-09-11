@@ -22,9 +22,13 @@ jobs:
       - run: npx tauri android init
       - run: npx tauri icon public/attendo-icon.png
       - run: cp -r src-tauri/icons/android/* src-tauri/gen/android/app/src/main/res/ || true
-      - run: npx tauri android build --debug --apk --target aarch64
+      - run: npx tauri android build --apk --target aarch64
+      - name: Sign Release APK
+        run: |
+          keytool -genkey -v -keystore debug.keystore -storepass android -alias androiddebugkey -keypass android -keyalg RSA -keysize 2048 -validity 10000 -dname "CN=Android Debug,O=Android,C=US"
+          APKSIGNER=$(ls $ANDROID_HOME/build-tools/*/apksigner | sort -V | tail -n 1)
+          $APKSIGNER sign --ks debug.keystore --ks-pass pass:android --key-pass pass:android src-tauri/gen/android/app/build/outputs/apk/**/release/*.apk || true
       - uses: actions/upload-artifact@v4
         with:
           name: Attendo-Android-APK
           path: src-tauri/gen/android/app/build/outputs/apk/**/*.apk
-
