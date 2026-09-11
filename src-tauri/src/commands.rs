@@ -1,4 +1,4 @@
-﻿use crate::security;
+use crate::security;
 use tauri::Manager;
 use std::fs;
 
@@ -17,13 +17,12 @@ pub async fn check_license(token: String) -> Result<bool, String> {
 }
 
 #[tauri::command]
-pub fn export_backup(app: tauri::AppHandle, dest_path: String) -> Result<bool, String> {
+pub fn get_db_file(app: tauri::AppHandle) -> Result<Vec<u8>, String> {
     let config_dir = app.path().app_config_dir().unwrap().join("attendo_core.db");
     let data_dir = app.path().app_data_dir().unwrap().join("attendo_core.db");
     let db_path = if config_dir.exists() { config_dir } else { data_dir };
     
-    fs::copy(&db_path, dest_path).map_err(|e| e.to_string())?;
-    Ok(true)
+    fs::read(&db_path).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -50,7 +49,7 @@ pub fn trigger_shadow_backup(app: tauri::AppHandle) -> Result<bool, String> {
 }
 
 #[tauri::command]
-pub fn create_temp_backup(app: tauri::AppHandle, src_path: String) -> Result<String, String> {
+pub fn create_temp_backup(app: tauri::AppHandle, src_bytes: Vec<u8>) -> Result<String, String> {
     let data_dir = app.path().app_data_dir().map_err(|e| e.to_string())?;
     if !data_dir.exists() {
         fs::create_dir_all(&data_dir).map_err(|e| e.to_string())?;
@@ -58,7 +57,7 @@ pub fn create_temp_backup(app: tauri::AppHandle, src_path: String) -> Result<Str
     let temp_name = format!("merge_temp_{}.db", std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_millis());
     let temp_path = data_dir.join(temp_name);
     
-    fs::copy(src_path, &temp_path).map_err(|e| e.to_string())?;
+    fs::write(&temp_path, src_bytes).map_err(|e| e.to_string())?;
     Ok(temp_path.to_string_lossy().to_string())
 }
 

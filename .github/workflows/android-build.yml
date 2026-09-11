@@ -20,6 +20,8 @@ jobs:
         with: { targets: aarch64-linux-android }
       - run: npm install
       - run: npx tauri android init
+      - run: |
+          sed -i 's/<application/<uses-permission android:name="android.permission.CAMERA" \/>\n    <application/' src-tauri/gen/android/app/src/main/AndroidManifest.xml
       - run: npx tauri icon public/attendo-icon.png
       - run: cp -r src-tauri/icons/android/* src-tauri/gen/android/app/src/main/res/ || true
       - run: npx tauri android build --apk --target aarch64
@@ -32,3 +34,4 @@ jobs:
         with:
           name: Attendo-Android-APK
           path: src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+

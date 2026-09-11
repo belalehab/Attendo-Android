@@ -1,4 +1,4 @@
-﻿import { invoke } from "@tauri-apps/api/core";
+import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import Database from "@tauri-apps/plugin-sql";
 import { save } from "@tauri-apps/plugin-dialog";
@@ -331,14 +331,14 @@ export async function initTauriApi() {
                a.session_name === sessionName
              );
 
-             let cellValue = 'âŒ Absent';
+             let cellValue = '❌ Absent';
              if (record) {
                if (record.is_excused === 0) {
                  attendedCount++;
-                 cellValue = 'âœ… Present';
+                 cellValue = '✅ Present';
                } else if (record.is_excused === 1) {
                  excusedCount++;
-                 cellValue = 'ðŸ“˜ Excused';
+                 cellValue = '📘 Excused';
                }
              }
              rowData[`session_${index}`] = cellValue;
@@ -356,9 +356,9 @@ export async function initTauriApi() {
           row.eachCell((cell, colNum) => {
             cell.alignment = { horizontal: 'center', vertical: 'middle' };
             if (colNum > 6) {
-                if (cell.value === 'âŒ Absent') cell.font = { color: { argb: 'FFE74C3C' } };
-                if (cell.value === 'âœ… Present') cell.font = { color: { argb: 'FF2DD4BF' } };
-                if (cell.value === 'ðŸ“˜ Excused') cell.font = { color: { argb: 'FF3B82F6' } };
+                if (cell.value === '❌ Absent') cell.font = { color: { argb: 'FFE74C3C' } };
+                if (cell.value === '✅ Present') cell.font = { color: { argb: 'FF2DD4BF' } };
+                if (cell.value === '📘 Excused') cell.font = { color: { argb: 'FF3B82F6' } };
             }
           });
 
@@ -714,7 +714,7 @@ export async function initTauriApi() {
         if (!filePath) return { success: false, msg: 'Cancelled' };
         
         const headers = "Name,ID,Grade\n";
-        const sampleData = "Ø£Ø­Ù…Ø¯ Ù…Ø­Ù…Ø¯,=\"12345678901234\",1\n";
+        const sampleData = "أحمد محمد,=\"12345678901234\",1\n";
         const csvContent = "\uFEFF" + headers + sampleData;
         
         await writeTextFile(filePath, csvContent);
@@ -1370,7 +1370,9 @@ export async function initTauriApi() {
         // CRITICAL: Force SQLite to flush all pending WAL memory data into the main file before OS copying!
         await db.execute("PRAGMA wal_checkpoint(TRUNCATE);");
 
-        await invoke('export_backup', { destPath });
+        const dbBytes: any = await invoke('get_db_file');
+          const { writeFile } = await import('@tauri-apps/plugin-fs');
+          await writeFile(destPath, new Uint8Array(dbBytes));
         return { success: true };
       } catch (err: any) {
         return { success: false, msg: err.toString() };
@@ -1387,7 +1389,9 @@ export async function initTauriApi() {
         
         if (!backupPath || Array.isArray(backupPath)) return { success: false, msg: 'Import Cancelled' };
 
-        const tempPath = await invoke<string>('create_temp_backup', { srcPath: backupPath });
+        const { readFile } = await import('@tauri-apps/plugin-fs');
+          const backupBytes = await readFile(backupPath);
+          const tempPath = await invoke<string>('create_temp_backup', { srcBytes: backupBytes });
 
         const backupDb = await Database.load(`sqlite:${tempPath}`);
         
@@ -1523,3 +1527,5 @@ export async function getApi() {
     }
     return apiInstance;
 }
+
+

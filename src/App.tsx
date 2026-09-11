@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Camera, Users, ClipboardList, BarChart3, Settings } from 'lucide-react';
 import { Toaster } from 'react-hot-toast';
 import { getApi } from './tauriApi';
@@ -24,8 +24,8 @@ function App() {
       try {
         const api = await getApi();
         // Check if setup complete in settings
-        const settings = await api.db.select('SELECT * FROM settings');
-        const isSet = settings.find((s: any) => s.key === 'setup_complete')?.value === 'true';
+        const settingsRes = await api.getGlobalSettings();
+        const isSet = settingsRes.data?.setup_complete === 'true';
         
         setIsSetupComplete(isSet);
         setActiveWorkspace("1"); // mock active workspace for MVP
@@ -109,3 +109,5 @@ function TabButton({ icon, label, isActive, onClick }: { icon: React.ReactNode, 
 }
 
 export default App;
+
+

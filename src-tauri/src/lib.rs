@@ -1,4 +1,4 @@
-﻿pub mod security;
+pub mod security;
 pub mod commands;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -11,7 +11,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::get_hardware_id,
             commands::check_license,
-            commands::export_backup,
+            commands::get_db_file,
             commands::trigger_shadow_backup,
             commands::create_temp_backup,
             commands::delete_temp_backup,

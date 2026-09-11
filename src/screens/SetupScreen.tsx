@@ -15,7 +15,7 @@ export default function SetupScreen({ onComplete }: { onComplete: () => void }) 
     try {
       const api = await getApi();
       const save = async (k: string, v: string) => {
-        try { await api.db.execute(`INSERT OR REPLACE INTO settings (key, value) VALUES ($1, $2)`, [k, v]); } catch(e) {}
+        try { await api.saveGlobalSettings({ [k]: v }); } catch(e) {}
       };
       await save("instructor_name", instructor);
       await save("university_name", university);
@@ -74,3 +74,4 @@ export default function SetupScreen({ onComplete }: { onComplete: () => void }) 
     </div>
   );
 }
+
