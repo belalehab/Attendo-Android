@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, UserPlus, Upload, Archive, MoreVertical, X } from 'lucide-react';
+import { Search, UserPlus, Upload, Archive, MoreVertical, X, QrCode } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { getApi } from '../tauriApi';
 import Papa from 'papaparse';
@@ -14,6 +14,30 @@ export default function RosterScreen({ activeWorkspace }: { activeWorkspace: str
   useEffect(() => {
     loadStudents();
   }, [activeWorkspace]);
+
+    const [isExporting, setIsExporting] = useState(false);
+
+  const handleExportQr = async () => {
+    if (students.length === 0) {
+      toast.error("No students to export");
+      return;
+    }
+    setIsExporting(true);
+    const toastId = toast.loading("Generating QR Cards PDF...");
+    try {
+      const api = await getApi();
+      const res = await api.exportStudentCardsPDF(activeWorkspace || "");
+      if (res.success) {
+        toast.success("Saved to Documents/Attendo", { id: toastId });
+      } else {
+        toast.error(res.msg, { id: toastId });
+      }
+    } catch(e: any) {
+      toast.error(e.toString(), { id: toastId });
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   const loadStudents = async () => {
     if (!activeWorkspace) return;
@@ -87,9 +111,19 @@ export default function RosterScreen({ activeWorkspace }: { activeWorkspace: str
       <div className="p-4 bg-[#1e293b] border-b border-white/5 sticky top-0 z-10 space-y-3 shadow-md">
         <h2 className="text-xl font-bold text-white flex items-center justify-between">
           <span>Roster <span className="text-sm font-normal text-gray-400 bg-black/20 px-2 py-0.5 rounded-full ml-2">{students.length}</span></span>
-          <button onClick={handleImportCsv} className="p-2 bg-blue-500/20 text-blue-400 rounded-lg">
-            <Upload size={18} />
-          </button>
+                    <div className="flex items-center gap-2">
+            <button 
+              onClick={handleExportQr} 
+              disabled={isExporting}
+              className="p-2 bg-emerald-500/20 text-emerald-400 rounded-lg flex items-center gap-1 disabled:opacity-50"
+            >
+              <QrCode size={18} />
+              <span className="text-xs font-bold uppercase tracking-wider hidden sm:block">Export QR</span>
+            </button>
+            <button onClick={handleImportCsv} className="p-2 bg-blue-500/20 text-blue-400 rounded-lg flex items-center gap-1">
+              <Upload size={18} />
+            </button>
+          </div>
         </h2>
         <div className="relative">
           <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -167,3 +201,4 @@ export default function RosterScreen({ activeWorkspace }: { activeWorkspace: str
     </div>
   );
 }
+

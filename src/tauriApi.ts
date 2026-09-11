@@ -800,6 +800,106 @@ export async function initTauriApi() {
       }
     },
 
+        
+
+        exportStudentCardsPDF: async (workspace: string) => {
+      try {
+        const { save } = await import('@tauri-apps/plugin-dialog');
+        const filePath = await save({
+          filters: [{ name: 'PDF Document', extensions: ['pdf'] }],
+          defaultPath: `Grade_${workspace}_QR_Cards.pdf`
+        });
+        if (!filePath) return { success: false, msg: 'Cancelled' };
+
+        const data: any[] = await db.select("SELECT * FROM students WHERE grade = $1 AND is_deleted = 0 ORDER BY name ASC", [workspace]);
+        if (data.length === 0) return { success: false, msg: 'No students found' };
+
+        const SECRET_APP_KEY = 'Attendo_Secure_2026_!@#';
+        const ACADEMIC_YEAR = '2025-2026';
+
+        const sha256 = async (message: string) => {
+            const msgBuffer = new TextEncoder().encode(message);                    
+            const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        };
+
+        const QRCode = (await import('qrcode')).default;
+        const jsPDF = (await import('jspdf')).default;
+        const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4', compress: true });
+
+        const cardsPerRow = 2;
+        const cardsPerCol = 3;
+        const cardsPerPage = cardsPerRow * cardsPerCol;
+        
+        const cardWidth = 240;
+        const cardHeight = 160;
+        const startX = 40;
+        const startY = 40;
+        const spacingX = 30;
+        const spacingY = 30;
+
+        let currentCard = 0;
+
+        for (const student of data) {
+          const rawString = `${student.national_id}${SECRET_APP_KEY}${ACADEMIC_YEAR}`;
+          const hash = await sha256(rawString);
+          const qrPayload = `${student.national_id}|${hash}`;
+          
+          const qrDataUrl = await QRCode.toDataURL(qrPayload, { margin: 1, width: 200, errorCorrectionLevel: 'H' });
+
+          if (currentCard > 0 && currentCard % cardsPerPage === 0) {
+            doc.addPage();
+          }
+
+          const pageIndex = currentCard % cardsPerPage;
+          const row = Math.floor(pageIndex / cardsPerRow);
+          const col = pageIndex % cardsPerRow;
+
+          const x = startX + col * (cardWidth + spacingX);
+          const y = startY + row * (cardHeight + spacingY);
+
+          // Draw Card Border
+          doc.setDrawColor(200, 200, 200);
+          doc.setLineWidth(1);
+          doc.rect(x, y, cardWidth, cardHeight);
+
+          // Draw Title
+          doc.setFillColor(30, 41, 59);
+          doc.rect(x, y, cardWidth, 30, 'F');
+          doc.setTextColor(255, 255, 255);
+          doc.setFontSize(12);
+          doc.setFont('helvetica', 'bold');
+          doc.text("Attendo Identity Card", x + cardWidth / 2, y + 20, { align: 'center' });
+
+          // Draw Student Name & Details
+          doc.setTextColor(0, 0, 0);
+          doc.setFontSize(11);
+          const nameLines = doc.splitTextToSize(student.name, 120);
+          doc.text(nameLines, x + 10, y + 50);
+          
+          doc.setFontSize(9);
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(100, 100, 100);
+          doc.text(`ID: ${student.national_id}`, x + 10, y + 100);
+          doc.text(`Grade: ${student.grade}`, x + 10, y + 115);
+
+          // Draw QR Code
+          doc.addImage(qrDataUrl, 'PNG', x + 130, y + 40, 100, 100);
+
+          currentCard++;
+        }
+
+        const pdfBuffer = doc.output('arraybuffer');
+        const { writeFile } = await import('@tauri-apps/plugin-fs');
+        await writeFile(filePath, new Uint8Array(pdfBuffer));
+
+        return { success: true, msg: 'Saved successfully!' };
+      } catch (err: any) {
+        return { success: false, msg: err.toString() };
+      }
+    },
+
     exportMasterReport: async (workspace: string, filterType: string) => {
       try {
         const filePath = await save({
@@ -1527,5 +1627,8 @@ export async function getApi() {
     }
     return apiInstance;
 }
+
+
+
 
 

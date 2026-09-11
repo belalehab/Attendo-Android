@@ -21,6 +21,7 @@ function App() {
   const [isSetupComplete, setIsSetupComplete] = useState<boolean | null>(null);
   const [activeTab, setActiveTab] = useState<TabType>('scanner');
   const [globalSettings, setGlobalSettings] = useState<any>({});
+  const [workspaces, setWorkspaces] = useState<string[]>(['1']);
   const [activeWorkspace, setActiveWorkspace] = useState<string | null>(null);
   const [initError, setInitError] = useState<string | null>(null);
 
@@ -45,7 +46,18 @@ function App() {
         const isSet = settingsRes.data?.setup_complete === 'true';
         setGlobalSettings(settingsRes.data || {});
         setIsSetupComplete(isSet);
-        setActiveWorkspace("1"); // mock active workspace for MVP
+        
+        let wsList = ["1"];
+        try {
+          if (settingsRes.data?.workspaces) {
+            wsList = JSON.parse(settingsRes.data.workspaces);
+            if (wsList.length === 0) wsList = ["1"];
+          }
+        } catch (e) {}
+        setWorkspaces(wsList);
+        if (!wsList.includes(activeWorkspace || "")) {
+          setActiveWorkspace(wsList[0]);
+        }
       } catch (e: any) {
         console.error(e);
         setInitError(e.toString());
@@ -53,6 +65,28 @@ function App() {
     };
     loadInit();
   }, []);
+
+    const reloadSettings = async () => {
+    try {
+      const api = await getApi();
+      const settingsRes = await api.getGlobalSettings();
+      setGlobalSettings(settingsRes.data || {});
+      let wsList = ["1"];
+      try {
+        if (settingsRes.data?.workspaces) {
+          wsList = JSON.parse(settingsRes.data.workspaces);
+          if (wsList.length === 0) wsList = ["1"];
+        }
+      } catch (e) {}
+      setWorkspaces(wsList);
+      setHardwareId(hwId => {
+        if (!wsList.includes(activeWorkspace || "")) {
+          setActiveWorkspace(wsList[0]);
+        }
+        return hwId;
+      });
+    } catch (e) {}
+  };
 
   const handleActivate = async () => {
     try {
@@ -160,7 +194,7 @@ function App() {
       case 'roster': return <RosterScreen activeWorkspace={activeWorkspace} />;
       case 'history': return <HistoryScreen activeWorkspace={activeWorkspace} />;
       case 'analytics': return <AnalyticsScreen activeWorkspace={activeWorkspace} />;
-      case 'settings': return <SettingsScreen globalSettings={globalSettings} />;
+      case 'settings': return <SettingsScreen globalSettings={globalSettings} reloadSettings={reloadSettings} activeWorkspace={activeWorkspace} />;
       default: return <ScannerScreen activeWorkspace={activeWorkspace} />;
     }
   };
@@ -216,3 +250,6 @@ function TabButton({ icon, label, isActive, onClick }: { icon: React.ReactNode, 
 }
 
 export default App;
+
+
+
