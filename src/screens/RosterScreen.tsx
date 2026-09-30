@@ -26,7 +26,7 @@ export default function RosterScreen({ activeWorkspace }: { activeWorkspace: str
     const toastId = toast.loading("Generating QR Cards PDF...");
     try {
       const api = await getApi();
-      const res = await api.exportStudentCardsPDF(activeWorkspace || "");
+      const res = await (await getApi()).exportStudentCardsPDF(activeWorkspace || "");
       if (res.success) {
         toast.success("Saved to Documents/Attendo", { id: toastId });
       } else {
@@ -144,12 +144,32 @@ export default function RosterScreen({ activeWorkspace }: { activeWorkspace: str
               <div className="font-bold text-gray-200 text-sm">{s.name}</div>
               <div className="text-xs text-gray-400 font-mono mt-1">{s.national_id}</div>
             </div>
-            <button 
-              onClick={() => handleArchive(s.national_id)}
-              className="p-2 text-gray-500 hover:text-rose-400 transition-colors"
-            >
-              <Archive size={18} />
-            </button>
+            <div className="flex items-center gap-1">
+              <button 
+                onClick={async () => {
+                  const toastId = toast.loading("Generating QR PDF...");
+                  const res = await (await getApi()).exportStudentCardsPDF(activeWorkspace || "", s.national_id);
+                  if (res.success) {
+                    toast.success("QR PDF Saved Successfully!", { id: toastId });
+                  } else if (res.msg !== 'Cancelled') {
+                    toast.error("Failed: " + res.msg, { id: toastId });
+                  } else {
+                    toast.dismiss(toastId);
+                  }
+                }}
+                className="p-2 text-gray-500 hover:text-teal-400 transition-colors"
+                title="Download QR"
+              >
+                <QrCode size={18} />
+              </button>
+              <button 
+                onClick={() => handleArchive(s.national_id)}
+                className="p-2 text-gray-500 hover:text-rose-400 transition-colors"
+                title="Archive Student"
+              >
+                <Archive size={18} />
+              </button>
+            </div>
           </div>
         ))}
         {filtered.length === 0 && (

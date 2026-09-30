@@ -766,16 +766,21 @@ const totalSessionsCount = logicalWeeks.length;
 
         
 
-        exportStudentCardsPDF: async (workspace: string) => {
+        exportStudentCardsPDF: async (workspace: string, specificId?: string) => {
       try {
         const { save } = await import('@tauri-apps/plugin-dialog');
         const filePath = await save({
           filters: [{ name: 'PDF Document', extensions: ['pdf'] }],
-          defaultPath: `Grade_${workspace}_QR_Cards.pdf`
+          defaultPath: specificId ? `${specificId}_QR.pdf` : `Grade_${workspace}_QR_Cards.pdf`
         });
         if (!filePath) return { success: false, msg: 'Cancelled' };
 
-        const data: any[] = await db.select("SELECT * FROM students WHERE grade = $1 AND is_deleted = 0 ORDER BY name ASC", [workspace]);
+        let data: any[] = [];
+        if (specificId) {
+            data = await db.select("SELECT * FROM students WHERE grade = $1 AND national_id = $2 AND is_deleted = 0", [workspace, specificId]);
+        } else {
+            data = await db.select("SELECT * FROM students WHERE grade = $1 AND is_deleted = 0 ORDER BY name ASC", [workspace]);
+        }
         if (data.length === 0) return { success: false, msg: 'No students found' };
 
         const SECRET_APP_KEY = 'Attendo_Secure_2026_!@#';
